@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Signup</title>
+    <style>
+        table {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid black;
+        }
+        th {
+            text-align: right;
+        }
+        .center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body>
+    {% if messages %}
+        <div class="center">
+            <ul>
+                {% for message in messages %}
+                    <li class="{% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form action="{% url 'signup' %}" method="POST">
+        {% csrf_token %}
+        <table class="center">
+            <tr>
+                <th colspan="2">
+                    <center><h3>Signup</h3></center><hr>
+                </th>
+            </tr>
+            <tr>
+                <th>Username</th>
+                <td><input type="text" name="username" required></td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td><input type="email" name="email" required></td>
+            </tr>
+            <tr>
+                <th>Password</th>
+                <td><input type="password" name="password" required></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <center><input type="submit" value="Submit"></center>
+                </td>
+            </tr>
+        </table>
+    </form>
+</body>
+</html>
