@@ -1,21 +1,25 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from .models import PasswordEntry
+from cryptography.fernet import Fernet
+from django.conf import settings
 import random
 import string
-from rest_framework.permissions import AllowAny
-from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
+
+User = get_user_model()  # Fetch the custom User model
+
 
 def generate_random_password(length=12):
     characters = string.ascii_letters + string.digits + string.punctuation
     password = ''.join(random.choice(characters) for _ in range(length))
     return password
+
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -23,6 +27,7 @@ def get_tokens_for_user(user):
         'access': str(refresh.access_token),
         'refresh': str(refresh),
     }
+
 
 @csrf_exempt
 @api_view(['POST'])
@@ -66,7 +71,9 @@ def login_view(request):
         else:
             return Response({'error': 'Invalid username or password'}, status=status.HTTP_400_BAD_REQUEST)
 
-    return Response({'error': 'An error occurred during signup: '}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    return Response({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+fernet = Fernet(settings.FERNET_KEY)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -77,7 +84,9 @@ def genpass(request):
 
         password = manual_password if manual_password else generate_random_password()
 
-        password_entry = PasswordEntry(user=request.user, service_name=service_name, generated_password=password)
+        encrypted_password = fernet.encrypt(password.encode())
+
+        password_entry = PasswordEntry(user=request.user, service_name=service_name, generated_password=encrypted_password.decode())
         password_entry.save()
 
         return Response({'message': f'Password for {service_name} saved successfully.'}, status=status.HTTP_201_CREATED)
@@ -85,13 +94,16 @@ def genpass(request):
     return Response({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def view_passwords(request):
     passwords = PasswordEntry.objects.filter(user=request.user)
-    password_data = [
-        {'service_name': entry.service_name, 'generated_password': entry.generated_password}  # Changed from 'hashed_password' to 'password'
-        for entry in passwords
-    ]
+    password_data = []
+    for entry in passwords:
+        decrypted_password = fernet.decrypt(entry.generated_password.encode()).decode()
+        password_data.append({
+            'service_name': entry.service_name,
+            'generated_password': decrypted_password
+        })
+
     return Response(password_data, status=status.HTTP_200_OK)
