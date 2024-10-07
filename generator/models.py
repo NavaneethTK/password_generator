@@ -26,6 +26,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=30, unique=True)
     email = models.EmailField(max_length=255, unique=True)
+    phone_number = models.CharField(max_length=10,default='0000000000')
+    CATEGORY_CHOICES = (('M', 'Male'), ('F', 'Female'))
+    gender = models.CharField(max_length=8, choices=CATEGORY_CHOICES)
     password = models.CharField(max_length=128)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -50,6 +53,6 @@ class PasswordEntry(models.Model):
     class Meta:
         db_table = 'password_entry'
 
-    @property
+
     def __str__(self):
         return f"{self.service_name} - {self.user.username}"

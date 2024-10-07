@@ -24,8 +24,8 @@ def generate_random_password(length=12):
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
-        'access': str(refresh.access_token),
-        'refresh': str(refresh),
+        'access_token': str(refresh.access_token),
+        'refresh_token': str(refresh),
     }
 
 
@@ -36,12 +36,18 @@ def signup(request):
     if request.method == 'POST':
         username = request.data.get('username')
         email = request.data.get('email')
+        phone_number = request.data.get('phone_number')
+        gender = request.data.get('gender')
         password = request.data.get('password')
+
+        if not username or not email or not password or not gender or not phone_number:
+            return Response({'message': 'All fields are required'},status=status.HTTP_400_BAD_REQUEST)
 
         if User.objects.filter(username=username).exists():
             return Response({'error': 'Username already taken'}, status=status.HTTP_400_BAD_REQUEST)
         if User.objects.filter(email=email).exists():
             return Response({'error': 'Email already exists'}, status=status.HTTP_400_BAD_REQUEST)
+
 
         user = User(username=username, email=email, password=make_password(password))
         user.save()
@@ -57,19 +63,19 @@ def signup(request):
 @permission_classes([AllowAny])
 def login_view(request):
     if request.method == 'POST':
-        username = request.data.get('username')
+        email = request.data.get('email')
         password = request.data.get('password')
 
         try:
-            user = User.objects.get(username=username)
+            user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response({'error': 'Invalid username or password'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)
 
         if user.check_password(password):
             tokens = get_tokens_for_user(user)
             return Response({'message': 'Login successful', 'tokens': tokens}, status=status.HTTP_200_OK)
         else:
-            return Response({'error': 'Invalid username or password'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)
 
     return Response({'error': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
