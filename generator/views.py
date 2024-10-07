@@ -12,7 +12,7 @@ import random
 import string
 from django.views.decorators.csrf import csrf_exempt
 
-User = get_user_model()  # Fetch the custom User model
+User = get_user_model()
 
 
 def generate_random_password(length=12):

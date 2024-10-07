@@ -30,8 +30,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['email']
 
     objects = UserManager()
 
@@ -50,5 +50,6 @@ class PasswordEntry(models.Model):
     class Meta:
         db_table = 'password_entry'
 
+    @property
     def __str__(self):
         return f"{self.service_name} - {self.user.username}"
