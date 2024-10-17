@@ -1,5 +1,5 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
 from . import views
 from django.views.generic import RedirectView
 
@@ -10,4 +10,7 @@ urlpatterns = [
     path('token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
     path('genpass', views.genpass, name='genpass'),
     path('view_passwords', views.view_passwords, name='view_passwords'),
+    path('admin_signup', views.admin_signup, name='admin_signup'),
+    path('user/<int:user_id>', views.update_user, name='update_user'),
+    path('admin_login',views.admin_login,name='admin_login')
 ]

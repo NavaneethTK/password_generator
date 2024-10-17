@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
+
 class UserManager(BaseUserManager):
     def create_user(self, email, username, password=None, **extra_fields):
         if not email:
@@ -22,15 +23,13 @@ class UserManager(BaseUserManager):
 
         return self.create_user(email, username, password, **extra_fields)
 
-class User(AbstractBaseUser, PermissionsMixin):
+
+class AdminUser(AbstractBaseUser, PermissionsMixin):
     id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=30, unique=True)
     email = models.EmailField(max_length=255, unique=True)
-    phone_number = models.CharField(max_length=10,default='0000000000')
-    CATEGORY_CHOICES = (('M', 'Male'), ('F', 'Female'))
-    gender = models.CharField(max_length=8, choices=CATEGORY_CHOICES)
     password = models.CharField(max_length=128)
-    is_staff = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=True)
     is_active = models.BooleanField(default=True)
 
     USERNAME_FIELD = 'username'
@@ -38,11 +37,68 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = UserManager()
 
+    groups = models.ManyToManyField(
+        'auth.Group',
+        related_name='adminuser_set',
+        blank=True,
+        help_text='The groups this user belongs to.',
+        verbose_name='groups',
+    )
+
+    user_permissions = models.ManyToManyField(
+         'auth.Permission',
+        related_name='adminuser_permissions',
+        blank=True,
+        help_text='Specific permissions for this user.',
+        verbose_name='user permissions',
+    )
+
+    class Meta:
+        db_table = 'adminuser'
+
+    def __str__(self):
+        return self.username
+
+
+class User(AbstractBaseUser, PermissionsMixin):
+    id = models.AutoField(primary_key=True)
+    adminuser = models.ForeignKey(AdminUser, on_delete=models.SET_NULL, null=True, blank=True)
+    username = models.CharField(max_length=30, unique=True)
+    email = models.EmailField(max_length=255, unique=True)
+    phone_number = models.CharField(max_length=10, blank=True, null=True)
+    CATEGORY_CHOICES = (('M', 'Male'), ('F', 'Female'))
+    gender = models.CharField(max_length=8, choices=CATEGORY_CHOICES, blank=True, null=True)
+    password = models.CharField(max_length=128)
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['email'] 
+
+    objects = UserManager()
+
+    groups = models.ManyToManyField(
+        'auth.Group',
+        related_name='user_set_custom',
+        blank=True,
+        help_text='The groups this user belongs to.',
+        verbose_name='groups',
+    )
+
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        related_name='user_permissions_custom',
+        blank=True,
+        help_text='Specific permissions for this user.',
+        verbose_name='user permissions',
+    )
+
     class Meta:
         db_table = 'user'
 
     def __str__(self):
         return self.username
+
 
 class PasswordEntry(models.Model):
     id = models.AutoField(primary_key=True)
@@ -52,7 +108,6 @@ class PasswordEntry(models.Model):
 
     class Meta:
         db_table = 'password_entry'
-
 
     def __str__(self):
         return f"{self.service_name} - {self.user.username}"

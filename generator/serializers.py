@@ -1,13 +1,13 @@
-from.models import User,PasswordEntry
+from .models import User, PasswordEntry
 from rest_framework import serializers
-
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id','username','email','phone_number','gender','password')
+        fields = ('id', 'username', 'email', 'phone_number', 'gender', 'password')
         extra_kwargs = {'password': {'write_only': True}}
 
 class PasswordEntrySerializer(serializers.ModelSerializer):
     class Meta:
-        model = PasswordEntry('id','user','service_name','generated_password')
+        model = PasswordEntry
+        fields = ('id', 'user', 'service_name', 'generated_password')

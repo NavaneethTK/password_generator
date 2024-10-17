@@ -137,8 +137,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
 AUTH_USER_MODEL = 'generator.User'
 
@@ -146,3 +146,7 @@ APPEND_SLASH=False
 
 
 FERNET_KEY = b'MJwnuI6qV2Fi1Q7vRmFi-TM2Q3O6x2s3oOHNNzH0iZ8='
+
+
+
+
